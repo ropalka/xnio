@@ -9,14 +9,14 @@ on:
 
 jobs:
   build-all:
-    name: Compile (no tests) with JDK 8
+    name: Compile (no tests) with JDK 11
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: AdoptOpenJDK/install-jdk@v1
-      name: Install JDK 8
+      name: Install JDK 11
       with:
-        version: 8    
+        version: 11
     - name: Build
       run: mvn -U -B -fae -DskipTests clean install
     - name: Tar Maven Repo
@@ -41,7 +41,7 @@ jobs:
       matrix:
         module: [api, nio-impl]
         os: [ubuntu-20.04, windows-latest, macos-latest]
-        jdk: [8, 11, 17, 21]
+        jdk: [11, 17, 21]
         openjdk_impl: [hotspot, openj9]
         exclude:
           - os: macos-latest
