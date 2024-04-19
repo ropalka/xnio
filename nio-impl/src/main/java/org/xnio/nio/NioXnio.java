@@ -75,8 +75,6 @@ final class NioXnio extends Xnio {
         final Object[] objects = AccessController.doPrivileged(
             new PrivilegedAction<Object[]>() {
                 public Object[] run() {
-                    String jdkVersion = System.getProperty("java.specification.version", "1.8");
-                    final boolean jdk9 = ! (jdkVersion.equals("1.8") || jdkVersion.equals("8"));
                     final SelectorProvider defaultProvider = SelectorProvider.provider();
                     final String chosenProvider = System.getProperty("xnio.nio.selector.provider");
                     SelectorProvider provider = null;
@@ -87,69 +85,6 @@ final class NioXnio extends Xnio {
                         } catch (Throwable e) {
                             // not available
                             provider = null;
-                        }
-                    }
-                    if (! jdk9) {
-                        // try to probe the best available provider
-                        if (provider == null) {
-                            try {
-                                // Mac OS X and BSD
-                                provider = Class.forName("sun.nio.ch.KQueueSelectorProvider", true, NioXnio.class.getClassLoader()).asSubclass(SelectorProvider.class).getConstructor().newInstance();
-                                provider.openSelector().close();
-                            } catch (Throwable e) {
-                                // not available
-                                provider = null;
-                            }
-                        }
-                        if (provider == null) {
-                            try {
-                                // Linux
-                                provider = Class.forName("sun.nio.ch.EPollSelectorProvider", true, NioXnio.class.getClassLoader()).asSubclass(SelectorProvider.class).getConstructor().newInstance();
-                                provider.openSelector().close();
-                            } catch (Throwable e) {
-                                // not available
-                                provider = null;
-                            }
-                        }
-                        if (provider == null && ! HAS_BUGGY_EVENT_PORT) {
-                            try {
-                                // Solaris (Java 8+)
-                                provider = Class.forName("sun.nio.ch.EventPortSelectorProvider", true, NioXnio.class.getClassLoader()).asSubclass(SelectorProvider.class).getConstructor().newInstance();
-                                provider.openSelector().close();
-                            } catch (Throwable e) {
-                                // not available
-                                provider = null;
-                            }
-                        }
-                        if (provider == null) {
-                            try {
-                                // Solaris
-                                provider = Class.forName("sun.nio.ch.DevPollSelectorProvider", true, NioXnio.class.getClassLoader()).asSubclass(SelectorProvider.class).getConstructor().newInstance();
-                                provider.openSelector().close();
-                            } catch (Throwable e) {
-                                // not available
-                                provider = null;
-                            }
-                        }
-                        if (provider == null) {
-                            try {
-                                // Solaris (Java 8+)
-                                provider = Class.forName("sun.nio.ch.EventPortSelectorProvider", true, NioXnio.class.getClassLoader()).asSubclass(SelectorProvider.class).getConstructor().newInstance();
-                                provider.openSelector().close();
-                            } catch (Throwable e) {
-                                // not available
-                                provider = null;
-                            }
-                        }
-                        if (provider == null) {
-                            try {
-                                // AIX
-                                provider = Class.forName("sun.nio.ch.PollsetSelectorProvider", true, NioXnio.class.getClassLoader()).asSubclass(SelectorProvider.class).getConstructor().newInstance();
-                                provider.openSelector().close();
-                            } catch (Throwable e) {
-                                // not available
-                                provider = null;
-                            }
                         }
                     }
                     if (provider == null) {
@@ -174,7 +109,6 @@ final class NioXnio extends Xnio {
                         throw log.noSelectorProvider();
                     }
                     log.selectorProvider(provider);
-                    final boolean defaultIsPoll = "sun.nio.ch.PollSelectorProvider".equals(provider.getClass().getName());
                     final String chosenMainSelector = System.getProperty("xnio.nio.selector.main");
                     final String chosenTempSelector = System.getProperty("xnio.nio.selector.temp");
                     final SelectorCreator defaultSelectorCreator = new DefaultSelectorCreator(provider);
@@ -193,16 +127,6 @@ final class NioXnio extends Xnio {
                         objects[2] = creator;
                     } catch (Exception e) {
                         // not available
-                    }
-                    if (! defaultIsPoll && ! jdk9) {
-                        // default is fine for main selectors; we should try to get poll for temp though
-                        if (objects[1] == null) try {
-                            SelectorProvider pollSelectorProvider = Class.forName("sun.nio.ch.PollSelectorProvider", true, NioXnio.class.getClassLoader()).asSubclass(SelectorProvider.class).getConstructor().newInstance();
-                            pollSelectorProvider.openSelector().close();
-                            objects[1] = new DefaultSelectorCreator(provider);
-                        } catch (Exception e) {
-                            // not available
-                        }
                     }
                     if (objects[1] == null) {
                         objects[1] = defaultSelectorCreator;
