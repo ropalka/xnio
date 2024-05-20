@@ -193,7 +193,7 @@ final class NioTcpServer extends AbstractNioChannel<NioTcpServer> implements Acc
         final NioTcpServerHandle[] handles = new NioTcpServerHandle[threadCount];
         for (int i = 0, length = threadCount; i < length; i++) {
             final SelectionKey key = threads[i].registerChannel(channel);
-            handles[i] = new NioTcpServerHandle(this, key, threads[i], i < perThreadHighRem ? perThreadHigh + 1 : perThreadHigh, i < perThreadLowRem ? perThreadLow + 1 : perThreadLow);
+            handles[i] = new NioTcpServerHandle(this, key, threads[i], i < perThreadLowRem ? perThreadLow + 1 : perThreadLow, i < perThreadHighRem ? perThreadHigh + 1 : perThreadHigh);
             key.attach(handles[i]);
         }
         this.handles = handles;
@@ -300,7 +300,7 @@ final class NioTcpServer extends AbstractNioChannel<NioTcpServer> implements Acc
         if (option == Options.REUSE_ADDRESSES) {
             old = Boolean.valueOf(socket.getReuseAddress());
             socket.setReuseAddress(Options.REUSE_ADDRESSES.cast(value, Boolean.FALSE).booleanValue());
-        } else if (option == Options.RECEIVE_BUFFER) { 
+        } else if (option == Options.RECEIVE_BUFFER) {
             old = Integer.valueOf(socket.getReceiveBufferSize());
             final int newValue = Options.RECEIVE_BUFFER.cast(value, Integer.valueOf(DEFAULT_BUFFER_SIZE)).intValue();
             if (newValue < 1) {
