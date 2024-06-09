@@ -86,12 +86,13 @@ final class NioSocketConduit extends NioHandle implements StreamSourceConduit, S
             }
             if (Bits.allAreSet(ops, SelectionKey.OP_READ)) try {
                 if (isReadShutdown()) suspendReads();
-                else readReadyHandler.readReady();
+                readReadyHandler.readReady();
             } catch (Throwable ignored) {
             }
             if (Bits.allAreSet(ops, SelectionKey.OP_WRITE)) try {
                 if (isWriteShutdown()) suspendWrites();
-                else writeReadyHandler.writeReady();
+                else
+                    writeReadyHandler.writeReady();
             } catch (Throwable ignored) {
             }
         } catch (CancelledKeyException ignored) {}
